@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta charset="UTF-8">	
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.18/vue.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+	<link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+	<div id="app">
+		<h1 class="titulo">Lugares </h1>
+		<button @click="ventanaNuevo=true;">NUEVO</button>
+		<p class="mensaje" v-if="mensaje">{{mensaje}}</p>
+	<table align="center">		
+		<thead><th>ID</th><th>NOMBRE</th><th>DESCRIPCIÓN</th><th>FOTO</th><th>ACCIÓN</th></thead>
+		<tbody>
+			<tr v-for="paisaje in paisajes">
+				<td>{{paisaje.id}}</td>
+				<td>{{paisaje.nombre}}</td>
+                <td>{{paisaje.descripcion}}</td>
+				<td><img :src="'img/'+paisaje.foto" width="100"></td>
+				<td>
+					
+					<button @click="ventanaEliminacion = true; selectUser(paisaje)">ELIMINAR</button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<!-- Nuevo-->
+	<div class="contenedor" v-if="ventanaNuevo">
+		<div class="modal">
+			<div class="header">
+				<button class="close" @click="ventanaNuevo=false">x</button>
+				<h1 align="center">AGREGAR</h1>
+				
+			</div>
+			<div class="content">				
+				<input type="text" name="nombre" id="nombre" placeholder="INGRESE EL NOMBRE" ><br>
+				<input type="text" name="descripcion" id="descripcion" placeholder="INGRESE LA DESCRIPCION"><br>						
+				<img v-if="url" :src="url" width="100" height="100" />
+				<input type="file" id="foto" name="foto" ref="foto" v-on:change="handleFileUpload()"/><br>
+				
+				<button @click="ventanaNuevo=false; guardarUsuario();">GUARDAR</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- Borrar-->
+	<div class="contenedor" v-if="ventanaEliminacion">
+		<div class="modal">
+			<div class="header">
+				<div class="izquierda">
+					<h1 align="center">BORRAR</h1>
+				</div>
+				<button class="derecha" @click="ventanaEliminacion=false">x</button>
+				<div class="clear"></div>
+			</div>
+			<div class="content">
+				Borrar a {{elegido.nombre}}
+<input type="hidden" name="did" id="did" v-model="elegido.id">
+				<button @click="ventanaEliminacion=false; borrarUsuario();">SI</button>
+				<button class="right" @click="ventana = false;">NO</button>
+			</div>
+		</div>
+	</div>
+
+
+	</div>
+
+	<style>
+	
+		.contenedor{
+			position: fixed;
+			background: rgba(0,0,0,0.5);
+			top:0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+		.modal{
+			padding: 5px;
+			margin: 15px auto;
+			background: white;
+			width: 500px;
+			height: 300px
+		}
+		h1{margin: 0px}		
+		.close{ background: red;
+		    color: white;
+		    float: right;
+		    border: 0px;
+		    border-radius: 50px;
+		    padding: 5px 9px;
+		    margin: 0px; 
+		}
+		.mensaje{
+			border-left:green 3px solid;
+			background: #99FFDE
+		}
+
+	</style>
+	<script>
+	 var app= new Vue({
+	 	el:"#app",
+	 	data:{
+	 		ventanaNuevo:false,
+	 		ventanaEdicion:false,
+	 		ventanaEliminacion:false,	 		
+	 		paisajes:[],	 		
+	 		elegido:{},	 		
+	 		porcentaje:0,
+	 		mensaje:"",
+	 		url:null,
+	 		urleditar:null
+	 	},
+	 	mounted: function(){
+	 		this.mostrarUsuarios()
+	 	},
+	 	methods:{
+	 		
+		    handleFileUpload: function(){
+		    	var _this	=	this
+		      	_this.file 	= 	_this.$refs.foto.files[0];
+		      	_this.url 	= 	URL.createObjectURL(_this.file);
+		      
+		    },
+		    fileEditar: function(){
+		    	var _this			=	this
+		      	_this.file 			= 	_this.$refs.mimagen.files[0];
+		      	_this.urleditar 	= 	URL.createObjectURL(_this.file);		      	
+		    },
+
+	 		mostrarUsuarios:function(){
+	 			axios.get("http://paginademaikol.epizy.com/vuephp/api.php?accion=mostrar")
+	 			.then(function(response){	 				
+	 				app.paisajes=response.data.paisajes
+	 			})
+	 			.catch(function () {
+		          console.log('FALLO!!');
+		        });
+	 		},
+	 		
+	 		guardarUsuario:function(){
+	 			const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+				let fd = new FormData();
+				fd.append('nombre',document.getElementById('nombre').value)
+				fd.append('descripcion',document.getElementById('descripcion').value)
+				fd.append('foto',document.getElementById('foto').files[0])				
+	 			axios.post("http://paginademaikol.epizy.com/vuephp/api.php?accion=crear",fd)
+	 			.then(function(response){
+	 				console.log(response)	 				
+	 				app.mostrarUsuarios();
+	 				app.mensaje=response.data.mensaje
+	 			})
+	 		},
+	 	
+
+	 		borrarUsuario:function(){
+                 let fd = new FormData();
+				fd.append('did',document.getElementById('did').value)
+	 			
+	 			axios.post("http://paginademaikol.epizy.com/vuephp/api.php?accion=borrar",fd)
+	 			.then(function(response){	 				
+	 				app.elegido={}
+	 				app.mostrarUsuarios();
+	 			})
+	 		},
+	 		selectUser(paisaje){
+				app.elegido = paisaje;
+			},
+	 		darFormato:function(obj){
+	 			var form_data = new FormData();
+			    for ( var key in obj ) {
+			          form_data.append(key, obj[key]);
+			    } 
+			    return form_data;
+	 		}
+
+	 	}
+	 })
+	</script>
+</body>
+	
+</html>
