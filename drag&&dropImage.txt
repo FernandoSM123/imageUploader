@@ -1,0 +1,3 @@
+https://stackoverflow.com/questions/34816849/how-to-access-the-image-data-after-dropping-an-image-from-the-html-part-of-a-web
+
+https://www.smashingmagazine.com/2018/01/drag-drop-file-uploader-vanilla-js/
