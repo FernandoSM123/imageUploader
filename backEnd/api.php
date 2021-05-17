@@ -1,5 +1,6 @@
 <?php 
 require "conexion.php";
+header('Access-Control-Allow-Origin: *');
 $conexion=new ApptivaDB();
 $opc="mostrar";
 if(isset($_GET['accion']))
